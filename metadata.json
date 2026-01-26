@@ -1,0 +1,5 @@
+{
+  "name": "NIMC Data Modification Portal",
+  "description": "An internal administrative tool for managing and modifying National Identity data, specializing in phone number updates and record verification for NIMC agents.",
+  "requestFramePermissions": []
+}
