@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { NimcRecord } from '../types.ts';
 
 interface ModificationModalProps {
@@ -28,8 +28,8 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
     dob: record.dateOfBirth,
   });
   const [notes, setNotes] = useState('');
-  const [isTouched, setIsTouched] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const [trackingId, setTrackingId] = useState<string | null>(null);
   
   // Camera State
   const [showCamera, setShowCamera] = useState(false);
@@ -125,15 +125,18 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
     setTimeout(() => {
       const success = Math.random() > 0.05; // 95% success rate simulation
       if (success) {
+        // Generate a persistent tracking ID for this session
+        const newId = `NIMC-MOD-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+        setTrackingId(newId);
         setSyncStatus('synced');
-        // Auto-close after 3.5 seconds if user doesn't click
+        
+        // Auto-close redirection logic
         setTimeout(() => {
-           // Check if still synced (prevent double trigger)
            setSyncStatus(current => {
              if (current === 'synced') triggerSave();
              return current;
            });
-        }, 3500);
+        }, 5000);
       } else {
         setSyncStatus('failed');
       }
@@ -143,46 +146,72 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
   // Success Confirmation Screen Component
   if (syncStatus === 'synced') {
     return (
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-500">
-          <div className="p-10 flex flex-col items-center text-center">
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-25"></div>
-              <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30 relative z-10 animate-in zoom-in-50 duration-500">
-                <svg className="w-12 h-12 text-white animate-in slide-in-from-bottom-2 duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-[48px] shadow-2xl w-full max-w-lg overflow-hidden border border-white/20 animate-in zoom-in-95 duration-500">
+          <div className="p-12 flex flex-col items-center text-center">
+            {/* Animated Success Icon */}
+            <div className="relative mb-10">
+              <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20 scale-150"></div>
+              <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse opacity-50 scale-125"></div>
+              <div className="w-28 h-28 bg-green-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-500/40 relative z-10 animate-in bounce-in duration-700">
+                <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
 
-            <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Record Synchronized</h2>
-            <p className="text-slate-500 font-medium max-w-xs mx-auto mb-8">
-              The changes for <span className="text-slate-900 font-bold">{formData.name}</span> have been successfully applied and hashed into the central database.
-            </p>
+            <div className="space-y-3 mb-10">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Modification Complete</h2>
+              <p className="text-slate-500 font-medium max-w-xs mx-auto">
+                Citizen record for <span className="text-slate-900 font-bold">{formData.name}</span> has been updated and synchronized with the NIMC Central Database.
+              </p>
+            </div>
 
-            <div className="w-full space-y-3 mb-8">
-              <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction ID</span>
-                <span className="text-xs font-mono font-bold text-slate-900 uppercase">NIMC-{Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
+            {/* Verification Card */}
+            <div className="w-full bg-slate-950 rounded-3xl p-6 shadow-inner mb-10 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <svg className="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
               </div>
-              <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Server Status</span>
-                <span className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-[10px] font-black text-green-600 uppercase">Live & Hashed</span>
-                </span>
+              <div className="flex flex-col items-start gap-1 relative z-10">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Verification Tracking ID</span>
+                <div className="flex items-center gap-3 w-full justify-between">
+                  <span className="text-xl font-mono font-bold text-green-400 selection:bg-green-500 selection:text-white">
+                    {trackingId}
+                  </span>
+                  <button className="text-slate-400 hover:text-white transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <button 
-              onClick={triggerSave}
-              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95"
-            >
-              Return to Dashboard
-            </button>
-            <p className="mt-4 text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Automatic redirection in 3 seconds...</p>
+            <div className="w-full space-y-4">
+              <button 
+                onClick={triggerSave}
+                className="w-full py-5 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/25 active:scale-95 flex items-center justify-center gap-3"
+              >
+                Return to Dashboard
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+              
+              {/* Countdown Progress Bar */}
+              <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-green-500/50 animate-[progress_5s_linear_forwards]"></div>
+              </div>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Automatic Redirect Active</p>
+            </div>
           </div>
         </div>
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+          }
+        `}} />
       </div>
     );
   }
