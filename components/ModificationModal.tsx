@@ -5,7 +5,7 @@ import { NimcRecord } from '../types.ts';
 interface ModificationModalProps {
   record: NimcRecord;
   onClose: () => void;
-  onSave: (recordId: string, newPhone: string, newLga: string) => void;
+  onSave: (recordId: string, newPhone: string, newLga: string, notes: string) => void;
 }
 
 const SOKOTO_LGAS = [
@@ -18,11 +18,12 @@ const SOKOTO_LGAS = [
 const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, onSave }) => {
   const [newPhone, setNewPhone] = useState(record.phoneNumber);
   const [newLga, setNewLga] = useState(record.localGovernmentArea);
+  const [notes, setNotes] = useState('');
   const [isTouched, setIsTouched] = useState(false);
   
   const phoneRegex = /^\+234\d{10}$/;
   const isPhoneValid = useMemo(() => phoneRegex.test(newPhone), [newPhone]);
-  const isChanged = newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea;
+  const isChanged = newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea || notes.trim() !== '';
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsTouched(true);
@@ -38,8 +39,8 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPhoneValid && isChanged) {
-      onSave(record.id, newPhone, newLga);
+    if (isPhoneValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea)) {
+      onSave(record.id, newPhone, newLga, notes);
     }
   };
 
@@ -137,18 +138,28 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-widest">Modification Justification (Notes)</label>
+              <textarea 
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Reason for change (e.g., relocation, lost SIM card, name error correction)..."
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/20 outline-none transition-all resize-none h-24"
+              />
+            </div>
+
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={!isPhoneValid || !isChanged}
+                disabled={!isPhoneValid || !(newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea)}
                 className={`w-full px-6 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-xl group ${
-                  isPhoneValid && isChanged
+                  isPhoneValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea)
                   ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/30 active:scale-[0.97] hover:-translate-y-0.5' 
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
                 }`}
               >
                 <span className="flex items-center justify-center gap-2">
-                  {isPhoneValid && isChanged ? (
+                  {isPhoneValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea) ? (
                     <svg className="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -156,8 +167,8 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                   Commit Record Modification
                 </span>
               </button>
-              {!isChanged && isTouched && (
-                <p className="text-center text-[10px] text-slate-400 mt-3 font-bold uppercase tracking-tighter">No changes detected in the form fields</p>
+              {!(newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea) && isTouched && (
+                <p className="text-center text-[10px] text-slate-400 mt-3 font-bold uppercase tracking-tighter">Modify data fields to enable commit button</p>
               )}
             </div>
           </form>
@@ -215,6 +226,12 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                             <p className="text-blue-600 uppercase text-[8px] font-black mb-1">New LGA</p>
                             <p className="text-blue-700 text-[10px] font-black">{log.newLga}</p>
                           </div>
+                        </div>
+                      )}
+                      {log.notes && (
+                        <div className="mt-2 p-2.5 bg-slate-100 rounded-lg border-l-4 border-blue-500">
+                          <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Agent Notes</p>
+                          <p className="text-[10px] text-slate-600 italic leading-relaxed">"{log.notes}"</p>
                         </div>
                       )}
                     </div>

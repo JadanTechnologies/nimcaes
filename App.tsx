@@ -33,7 +33,7 @@ const App: React.FC = () => {
     }, 2000);
   };
 
-  const handleUpdateRecord = (recordId: string, newPhone: string, newLga: string) => {
+  const handleUpdateRecord = (recordId: string, newPhone: string, newLga: string, notes: string) => {
     setRecords(prev => prev.map(rec => {
       if (rec.id === recordId) {
         const newHistoryEntry: ModificationLog = {
@@ -43,6 +43,7 @@ const App: React.FC = () => {
           newPhone: newPhone,
           oldLga: rec.localGovernmentArea,
           newLga: newLga,
+          notes: notes,
           timestamp: new Date().toISOString(),
           agentId: 'AGT-7742',
           agentName: 'Jabir'

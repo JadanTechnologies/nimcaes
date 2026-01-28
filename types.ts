@@ -13,6 +13,7 @@ export interface ModificationLog {
   newPhone: string;
   oldLga?: string;
   newLga?: string;
+  notes?: string;
   timestamp: string;
   agentId: string;
   agentName: string;
