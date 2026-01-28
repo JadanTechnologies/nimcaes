@@ -5,7 +5,7 @@ import { NimcRecord } from '../types.ts';
 interface ModificationModalProps {
   record: NimcRecord;
   onClose: () => void;
-  onSave: (recordId: string, newPhone: string, newLga: string, notes: string) => void;
+  onSave: (recordId: string, newPhone: string, newLga: string, newNin: string, notes: string) => void;
 }
 
 const SOKOTO_LGAS = [
@@ -18,12 +18,21 @@ const SOKOTO_LGAS = [
 const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, onSave }) => {
   const [newPhone, setNewPhone] = useState(record.phoneNumber);
   const [newLga, setNewLga] = useState(record.localGovernmentArea);
+  const [newNin, setNewNin] = useState(record.nin);
   const [notes, setNotes] = useState('');
   const [isTouched, setIsTouched] = useState(false);
   
   const phoneRegex = /^\+234\d{10}$/;
+  const ninRegex = /^\d{11}$/;
+
   const isPhoneValid = useMemo(() => phoneRegex.test(newPhone), [newPhone]);
-  const isChanged = newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea || notes.trim() !== '';
+  const isNinValid = useMemo(() => ninRegex.test(newNin), [newNin]);
+
+  const isChanged = 
+    newPhone !== record.phoneNumber || 
+    newLga !== record.localGovernmentArea || 
+    newNin !== record.nin ||
+    notes.trim() !== '';
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsTouched(true);
@@ -37,10 +46,16 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
     setNewPhone(final);
   };
 
+  const handleNinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsTouched(true);
+    const val = e.target.value.replace(/\D/g, '').substring(0, 11);
+    setNewNin(val);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPhoneValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea)) {
-      onSave(record.id, newPhone, newLga, notes);
+    if (isPhoneValid && isNinValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea || newNin !== record.nin)) {
+      onSave(record.id, newPhone, newLga, newNin, notes);
     }
   };
 
@@ -48,6 +63,13 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
     if (!isTouched && newPhone === record.phoneNumber) return 'border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900';
     if (isPhoneValid) return 'border-green-500 ring-2 ring-green-500/10 focus:ring-green-500/20 text-green-700';
     if (isTouched && newPhone.length < 14) return 'border-blue-400 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900';
+    return 'border-red-500 ring-2 ring-red-500/10 focus:ring-red-500/20 text-red-600';
+  };
+
+  const getNinStatusStyles = () => {
+    if (!isTouched && newNin === record.nin) return 'border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900';
+    if (isNinValid) return 'border-green-500 ring-2 ring-green-500/10 focus:ring-green-500/20 text-green-700';
+    if (isTouched && newNin.length < 11) return 'border-blue-400 focus:border-blue-500 focus:ring-blue-500/20 text-slate-900';
     return 'border-red-500 ring-2 ring-red-500/10 focus:ring-red-500/20 text-red-600';
   };
 
@@ -97,9 +119,36 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Citizen NIN</label>
-                <div className="px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-600 font-mono text-sm tracking-tighter">
-                  {record.nin}
+                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-widest flex justify-between">
+                  Citizen NIN (11 Digits)
+                  <span className={isNinValid ? 'text-green-600' : 'text-slate-400'}>
+                    {newNin.length}/11
+                  </span>
+                </label>
+                <div className="relative group">
+                  <input 
+                    type="text" 
+                    value={newNin}
+                    onChange={handleNinChange}
+                    onBlur={() => setIsTouched(true)}
+                    placeholder="Enter 11-digit NIN"
+                    className={`w-full border rounded-xl pl-4 pr-12 py-3 outline-none transition-all text-sm font-mono font-bold tracking-wider focus:ring-4 ${getNinStatusStyles()}`}
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    {isNinValid ? (
+                      <div className="bg-green-100 rounded-full p-1 animate-in zoom-in duration-300">
+                        <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    ) : (isTouched && newNin.length === 11 && !isNinValid) ? (
+                      <div className="bg-red-100 rounded-full p-1 animate-bounce">
+                        <svg className="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
@@ -151,15 +200,15 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={!isPhoneValid || !(newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea)}
+                disabled={!isPhoneValid || !isNinValid || !(newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea || newNin !== record.nin)}
                 className={`w-full px-6 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-xl group ${
-                  isPhoneValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea)
+                  isPhoneValid && isNinValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea || newNin !== record.nin)
                   ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/30 active:scale-[0.97] hover:-translate-y-0.5' 
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
                 }`}
               >
                 <span className="flex items-center justify-center gap-2">
-                  {isPhoneValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea) ? (
+                  {isPhoneValid && isNinValid && (newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea || newNin !== record.nin) ? (
                     <svg className="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -167,7 +216,7 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                   Commit Record Modification
                 </span>
               </button>
-              {!(newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea) && isTouched && (
+              {!(newPhone !== record.phoneNumber || newLga !== record.localGovernmentArea || newNin !== record.nin) && isTouched && (
                 <p className="text-center text-[10px] text-slate-400 mt-3 font-bold uppercase tracking-tighter">Modify data fields to enable commit button</p>
               )}
             </div>
@@ -204,8 +253,20 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                     </div>
 
                     <div className="p-4 space-y-3">
-                      {log.oldPhone !== log.newPhone && (
+                      {log.oldNin && log.newNin && log.oldNin !== log.newNin && (
                         <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <p className="text-slate-400 uppercase text-[8px] font-black mb-1">Previous NIN</p>
+                            <p className="text-slate-400 font-mono text-[10px] line-through">{log.oldNin}</p>
+                          </div>
+                          <div className="flex-1 text-right">
+                            <p className="text-blue-600 uppercase text-[8px] font-black mb-1">New NIN</p>
+                            <p className="text-blue-700 font-mono text-[10px] font-black">{log.newNin}</p>
+                          </div>
+                        </div>
+                      )}
+                      {log.oldPhone !== log.newPhone && (
+                        <div className="flex items-center gap-4 border-t border-slate-100 pt-3">
                           <div className="flex-1">
                             <p className="text-slate-400 uppercase text-[8px] font-black mb-1">Previous Phone</p>
                             <p className="text-slate-400 font-mono text-[10px] line-through">{log.oldPhone}</p>
