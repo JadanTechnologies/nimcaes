@@ -22,21 +22,18 @@ const App: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
-    // Generate 500 records on mount
     const data = generateMockData(500);
     setRecords(data);
   }, []);
 
   const handleLoginSuccess = () => {
     setAuthState('success_popup');
-    
-    // Sequence: Show success for 2 seconds, then show the requested Lockout error
     setTimeout(() => {
       setAuthState('lockout');
     }, 2000);
   };
 
-  const handleUpdatePhone = (recordId: string, newPhone: string) => {
+  const handleUpdateRecord = (recordId: string, newPhone: string, newLga: string) => {
     setRecords(prev => prev.map(rec => {
       if (rec.id === recordId) {
         const newHistoryEntry: ModificationLog = {
@@ -44,6 +41,8 @@ const App: React.FC = () => {
           recordId: rec.id,
           oldPhone: rec.phoneNumber,
           newPhone: newPhone,
+          oldLga: rec.localGovernmentArea,
+          newLga: newLga,
           timestamp: new Date().toISOString(),
           agentId: 'AGT-7742',
           agentName: 'Jabir'
@@ -52,6 +51,7 @@ const App: React.FC = () => {
         return { 
           ...rec, 
           phoneNumber: newPhone, 
+          localGovernmentArea: newLga,
           status: RecordStatus.MODIFIED, 
           lastModified: new Date().toISOString(),
           modificationHistory: [newHistoryEntry, ...rec.modificationHistory]
@@ -82,19 +82,15 @@ const App: React.FC = () => {
     setIsAiLoading(false);
   };
 
-  // 1. Show Login Screen if unauthenticated
   if (authState === 'unauthenticated') {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // 2. Main Portal with Security Overlays
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Overlays */}
       {authState === 'success_popup' && <SecurityOverlay status="success" />}
       {authState === 'lockout' && <SecurityOverlay status="lockout" />}
 
-      {/* Header */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -119,8 +115,6 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        {/* Sidebar / AI Tools */}
         <aside className="lg:col-span-1 space-y-6">
           <button 
             onClick={() => setIsNewRecordModalOpen(true)}
@@ -160,23 +154,8 @@ const App: React.FC = () => {
               )}
             </div>
           </div>
-
-          <div className="bg-gradient-to-br from-green-600 to-green-700 p-6 rounded-2xl shadow-lg shadow-green-900/10 text-white">
-            <h3 className="font-bold mb-2 text-xs uppercase tracking-wider opacity-80">Portal Stats</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[10px] uppercase opacity-70">Database</p>
-                <p className="text-xl font-bold">{records.length}</p>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase opacity-70">Modified</p>
-                <p className="text-xl font-bold">14</p>
-              </div>
-            </div>
-          </div>
         </aside>
 
-        {/* Main Content Area */}
         <div className="lg:col-span-3 space-y-6">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div>
@@ -205,12 +184,11 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Modals */}
       {selectedRecord && (
         <ModificationModal 
           record={selectedRecord} 
           onClose={() => setSelectedRecord(null)}
-          onSave={handleUpdatePhone}
+          onSave={handleUpdateRecord}
         />
       )}
 
@@ -220,18 +198,6 @@ const App: React.FC = () => {
           onSave={handleCreateNewRecord}
         />
       )}
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-100 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-slate-400">© 2025 National Identity Management Commission (NIMC) Portal v3.4.2</p>
-          <div className="flex gap-6">
-            <a href="#" className="text-xs text-slate-400 hover:text-slate-600">Privacy Policy</a>
-            <a href="#" className="text-xs text-slate-400 hover:text-slate-600">Compliance Handbook</a>
-            <a href="#" className="text-xs text-slate-400 hover:text-slate-600">Support</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

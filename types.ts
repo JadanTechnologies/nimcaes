@@ -11,6 +11,8 @@ export interface ModificationLog {
   recordId: string;
   oldPhone: string;
   newPhone: string;
+  oldLga?: string;
+  newLga?: string;
   timestamp: string;
   agentId: string;
   agentName: string;
