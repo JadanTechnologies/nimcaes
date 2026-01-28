@@ -1,10 +1,13 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const getAiGuidance = async (query: string, recordContext: any) => {
   try {
+    // Initialize inside the function to prevent top-level errors if API_KEY is empty/missing
+    // This allows the main UI to render even if the key isn't provided yet.
+    const apiKey = process.env.API_KEY || "";
+    const ai = new GoogleGenAI({ apiKey });
+    
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `You are an internal NIMC (National Identity Management Commission) compliance assistant. 
@@ -20,6 +23,10 @@ export const getAiGuidance = async (query: string, recordContext: any) => {
     return response.text;
   } catch (error) {
     console.error("AI Error:", error);
+    // Specific handling for common initialization errors
+    if (error instanceof Error && error.message.includes("API Key")) {
+      return "AI Guidance is currently unavailable: System API key is not configured. Please contact the technical administrator.";
+    }
     return "I'm sorry, I encountered an error connecting to the compliance database. Please proceed with manual verification.";
   }
 };

@@ -7,8 +7,16 @@
     <title>NIMC Internal Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Shim process.env for browser compatibility
-      window.process = { env: { API_KEY: "" } };
+      /**
+       * Robust shim for process.env.
+       * This ensures that the code doesn't crash when accessing process.env.API_KEY
+       * while preserving any existing values injected by the hosting environment.
+       */
+      window.process = window.process || {};
+      window.process.env = window.process.env || {};
+      if (typeof window.process.env.API_KEY === 'undefined') {
+        window.process.env.API_KEY = "";
+      }
     </script>
 <script type="importmap">
 {
