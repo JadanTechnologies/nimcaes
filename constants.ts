@@ -1,15 +1,17 @@
 
-import { NimcRecord, RecordStatus, ModificationLog } from './types';
+import { NimcRecord, RecordStatus, ModificationLog } from './types.ts';
 
 const HAUSA_FIRST_NAMES = [
   'Musa', 'Sani', 'Fatima', 'Zainab', 'Amina', 'Ibrahim', 'Abubakar', 'Umar', 
   'Aisha', 'Hadiza', 'Bello', 'Usman', 'Salisu', 'Kabiru', 'Bashir', 'Maryam',
-  'Aliyu', 'Hassan', 'Hussaini', 'Rukayya', 'Lauwali', 'Nura', 'Rabiu', 'Habibu'
+  'Aliyu', 'Hassan', 'Hussaini', 'Rukayya', 'Lauwali', 'Nura', 'Rabiu', 'Habibu',
+  'Mustapha', 'Umaru', 'Nasiru', 'Mansur', 'Shuaibu', 'Zahra'
 ];
 
 const HAUSA_LAST_NAMES = [
   'Danjuma', 'Bako', 'Garba', 'Gwadabe', 'Yusuf', 'Abdullahi', 'Muhammed', 
-  'Shehu', 'Tukur', 'Jibrin', 'Maina', 'Ladan', 'Buhari', 'Kwankwaso', 'Ribadu'
+  'Shehu', 'Tukur', 'Jibrin', 'Maina', 'Ladan', 'Buhari', 'Kwankwaso', 'Ribadu',
+  'Sarki', 'Zaki', 'Kano', 'Zaria', 'Sokoto', 'Gwandu', 'Dutse'
 ];
 
 const generateNIN = () => Math.floor(10000000000 + Math.random() * 90000000000).toString();
@@ -19,7 +21,7 @@ export const generateMockData = (count: number): NimcRecord[] => {
   const records: NimcRecord[] = [
     {
       id: '0',
-      name: 'Lauwali Rukayyan',
+      name: 'Rukayyan Lauwali',
       nin: '38820058810',
       phoneNumber: '+2348031234567',
       gender: 'Male',
@@ -28,13 +30,25 @@ export const generateMockData = (count: number): NimcRecord[] => {
       lastModified: new Date().toISOString(),
       status: RecordStatus.PENDING,
       modificationHistory: []
+    },
+    {
+      id: '999',
+      name: 'Buhari Danjuma',
+      nin: '44556677889',
+      phoneNumber: '+2349011223344',
+      gender: 'Male',
+      stateOfOrigin: 'Kano',
+      localGovernmentArea: 'Dala',
+      lastModified: new Date().toISOString(),
+      status: RecordStatus.VERIFIED,
+      modificationHistory: []
     }
   ];
 
   for (let i = 1; i < count; i++) {
     const firstName = HAUSA_FIRST_NAMES[Math.floor(Math.random() * HAUSA_FIRST_NAMES.length)];
     const lastName = HAUSA_LAST_NAMES[Math.floor(Math.random() * HAUSA_LAST_NAMES.length)];
-    const id = i.toString();
+    const id = `rec-${i}-${Math.floor(Math.random() * 1000)}`;
     
     // Randomly add some history to some records
     const history: ModificationLog[] = [];
