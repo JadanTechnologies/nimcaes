@@ -1,13 +1,18 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NimcRecord, RecordStatus, ModificationLog } from './types';
 import { generateMockData } from './constants';
 import RecordTable from './components/RecordTable';
 import ModificationModal from './components/ModificationModal';
 import NewRecordModal from './components/NewRecordModal';
+import LoginScreen from './components/LoginScreen';
+import SecurityOverlay from './components/SecurityOverlay';
 import { getAiGuidance } from './services/geminiService';
 
 const App: React.FC = () => {
+  // Authentication State
+  const [authState, setAuthState] = useState<'unauthenticated' | 'authenticating' | 'success_popup' | 'lockout' | 'authenticated'>('unauthenticated');
+  
   const [records, setRecords] = useState<NimcRecord[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<NimcRecord | null>(null);
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
@@ -21,6 +26,15 @@ const App: React.FC = () => {
     const data = generateMockData(500);
     setRecords(data);
   }, []);
+
+  const handleLoginSuccess = () => {
+    setAuthState('success_popup');
+    
+    // Sequence: Show success for 2 seconds, then show the requested Lockout error
+    setTimeout(() => {
+      setAuthState('lockout');
+    }, 2000);
+  };
 
   const handleUpdatePhone = (recordId: string, newPhone: string) => {
     setRecords(prev => prev.map(rec => {
@@ -68,8 +82,18 @@ const App: React.FC = () => {
     setIsAiLoading(false);
   };
 
+  // 1. Show Login Screen if unauthenticated
+  if (authState === 'unauthenticated') {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // 2. Main Portal with Security Overlays
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Overlays */}
+      {authState === 'success_popup' && <SecurityOverlay status="success" />}
+      {authState === 'lockout' && <SecurityOverlay status="lockout" />}
+
       {/* Header */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -84,10 +108,10 @@ const App: React.FC = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium">Jabir</p>
+              <p className="text-sm font-medium">Welcome back, Jabir</p>
               <p className="text-xs text-slate-400">Headquarters - Abuja</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-600 border border-slate-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-full bg-blue-600 border border-slate-600 flex items-center justify-center font-bold shadow-lg shadow-blue-500/20">
               J
             </div>
           </div>
@@ -109,7 +133,7 @@ const App: React.FC = () => {
           </button>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
+            <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4 text-sm uppercase tracking-wide">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
               Compliance AI Assistant
             </h3>
@@ -130,7 +154,7 @@ const App: React.FC = () => {
               
               {aiResponse && (
                 <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                  <p className="text-xs font-semibold text-blue-800 mb-1">AI INSIGHT:</p>
+                  <p className="text-xs font-semibold text-blue-800 mb-1 uppercase tracking-tighter">AI Insight</p>
                   <p className="text-xs text-blue-900 leading-relaxed">{aiResponse}</p>
                 </div>
               )}
@@ -138,14 +162,14 @@ const App: React.FC = () => {
           </div>
 
           <div className="bg-gradient-to-br from-green-600 to-green-700 p-6 rounded-2xl shadow-lg shadow-green-900/10 text-white">
-            <h3 className="font-bold mb-2 text-sm">Portal Stats</h3>
+            <h3 className="font-bold mb-2 text-xs uppercase tracking-wider opacity-80">Portal Stats</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[10px] uppercase opacity-70">Total Records</p>
+                <p className="text-[10px] uppercase opacity-70">Database</p>
                 <p className="text-xl font-bold">{records.length}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase opacity-70">Modified Today</p>
+                <p className="text-[10px] uppercase opacity-70">Modified</p>
                 <p className="text-xl font-bold">14</p>
               </div>
             </div>
@@ -156,16 +180,16 @@ const App: React.FC = () => {
         <div className="lg:col-span-3 space-y-6">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Database Records</h2>
-              <p className="text-slate-500 text-sm">Search and manage citizen data records</p>
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Database Records</h2>
+              <p className="text-slate-500 text-sm">Citizen data synchronization status</p>
             </div>
             <div className="relative w-full sm:w-72">
               <input 
                 type="text" 
-                placeholder="Search by name, NIN or phone..."
+                placeholder="Search NIN or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
               />
               <svg className="w-5 h-5 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
