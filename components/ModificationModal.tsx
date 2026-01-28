@@ -28,7 +28,6 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
   const isPhoneValid = useMemo(() => phoneRegex.test(newPhone), [newPhone]);
   const isNinValid = useMemo(() => ninRegex.test(newNin), [newNin]);
 
-  // Combined change check to ensure notes allow submission
   const isChanged = useMemo(() => {
     return (
       newPhone !== record.phoneNumber || 
@@ -95,7 +94,8 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
           </button>
         </div>
         
-        <div className="overflow-y-auto flex-1 p-8 space-y-8">
+        <div className="overflow-y-auto flex-1 p-8 space-y-10">
+          {/* Main Edit Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1.5">
@@ -139,19 +139,7 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                     className={`w-full border rounded-xl pl-4 pr-12 py-3 outline-none transition-all text-sm font-mono font-bold tracking-wider focus:ring-4 ${getNinStatusStyles()}`}
                   />
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    {isNinValid ? (
-                      <div className="bg-green-100 rounded-full p-1 animate-in zoom-in duration-300">
-                        <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    ) : (isTouched && newNin.length === 11 && !isNinValid) ? (
-                      <div className="bg-red-100 rounded-full p-1 animate-bounce">
-                        <svg className="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    ) : null}
+                    {isNinValid && <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
                   </div>
                 </div>
               </div>
@@ -172,21 +160,6 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                     placeholder="+234..."
                     className={`w-full border rounded-xl pl-4 pr-12 py-3 outline-none transition-all text-sm font-mono font-bold tracking-wider focus:ring-4 ${getPhoneStatusStyles()}`}
                   />
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    {isPhoneValid ? (
-                      <div className="bg-green-100 rounded-full p-1 animate-in zoom-in duration-300">
-                        <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    ) : (isTouched && newPhone.length === 14 && !isPhoneValid) ? (
-                      <div className="bg-red-100 rounded-full p-1 animate-bounce">
-                        <svg className="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    ) : null}
-                  </div>
                 </div>
               </div>
             </div>
@@ -199,116 +172,125 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                   setNotes(e.target.value);
                   setIsTouched(true);
                 }}
-                placeholder="Reason for change (e.g., relocation, lost SIM card, name error correction)..."
+                placeholder="Briefly explain the reason for this record modification..."
                 className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/20 outline-none transition-all resize-none h-24"
               />
             </div>
 
-            <div className="pt-4">
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={!isPhoneValid || !isNinValid || !isChanged}
                 className={`w-full px-6 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-xl group ${
                   isPhoneValid && isNinValid && isChanged
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/30 active:scale-[0.97] hover:-translate-y-0.5' 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/30 active:scale-[0.98]' 
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
                 }`}
               >
-                <span className="flex items-center justify-center gap-2">
-                  {isPhoneValid && isNinValid && isChanged ? (
-                    <svg className="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  ) : null}
-                  Commit Record Modification
-                </span>
+                Commit Changes & Update Audit Log
               </button>
-              {!isChanged && isTouched && (
-                <p className="text-center text-[10px] text-slate-400 mt-3 font-bold uppercase tracking-tighter">Modify data fields or add a note to enable commit button</p>
-              )}
             </div>
           </form>
 
-          {/* Modification History Section */}
-          <div className="pt-8 border-t border-slate-100">
-            <h3 className="text-xs font-black text-slate-900 mb-6 flex items-center gap-2 uppercase tracking-widest">
-              <div className="w-6 h-6 bg-slate-900 rounded-lg flex items-center justify-center">
-                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+          {/* Redesigned Modification History Section */}
+          <div className="pt-6 border-t border-slate-100">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Modification History</h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Verified Audit Trail ({record.modificationHistory.length})</p>
+                </div>
               </div>
-              Audit History Log
-            </h3>
+            </div>
             
             {record.modificationHistory.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-8 relative before:absolute before:inset-y-0 before:left-[19px] before:w-0.5 before:bg-slate-100 before:z-0">
                 {record.modificationHistory.map((log) => (
-                  <div key={log.id} className="group bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden hover:border-blue-200 hover:shadow-md transition-all">
-                    <div className="px-4 py-2.5 bg-white border-b border-slate-200 flex justify-between items-center">
-                       <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center text-[10px] text-white font-black">
-                          {log.agentName.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black text-slate-900 uppercase">{log.agentName}</p>
-                          <p className="text-[9px] text-slate-400 font-bold">ID: {log.agentId}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[9px] text-slate-500 font-bold">{new Date(log.timestamp).toLocaleDateString()}</p>
-                      </div>
+                  <div key={log.id} className="relative z-10 pl-12 group">
+                    {/* Timeline Dot */}
+                    <div className="absolute left-0 top-1 w-10 h-10 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center group-hover:border-blue-500 transition-colors shadow-sm">
+                      <div className="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-blue-500 transition-colors"></div>
                     </div>
 
-                    <div className="p-4 space-y-3">
-                      {log.oldNin && log.newNin && log.oldNin !== log.newNin && (
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1">
-                            <p className="text-slate-400 uppercase text-[8px] font-black mb-1">Previous NIN</p>
-                            <p className="text-slate-400 font-mono text-[10px] line-through">{log.oldNin}</p>
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+                      <div className="px-5 py-3 bg-white border-b border-slate-200 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-black text-[10px]">
+                            {log.agentName.charAt(0)}
                           </div>
-                          <div className="flex-1 text-right">
-                            <p className="text-blue-600 uppercase text-[8px] font-black mb-1">New NIN</p>
-                            <p className="text-blue-700 font-mono text-[10px] font-black">{log.newNin}</p>
-                          </div>
-                        </div>
-                      )}
-                      {log.oldPhone !== log.newPhone && (
-                        <div className="flex items-center gap-4 border-t border-slate-100 pt-3">
-                          <div className="flex-1">
-                            <p className="text-slate-400 uppercase text-[8px] font-black mb-1">Previous Phone</p>
-                            <p className="text-slate-400 font-mono text-[10px] line-through">{log.oldPhone}</p>
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className="text-blue-600 uppercase text-[8px] font-black mb-1">New Phone</p>
-                            <p className="text-blue-700 font-mono text-[10px] font-black">{log.newPhone}</p>
+                          <div>
+                            <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{log.agentName}</p>
+                            <p className="text-[9px] text-slate-400 font-bold tracking-widest">AGENT ID: {log.agentId}</p>
                           </div>
                         </div>
-                      )}
-                      {log.oldLga && log.newLga && log.oldLga !== log.newLga && (
-                        <div className="flex items-center gap-4 border-t border-slate-100 pt-3">
-                          <div className="flex-1">
-                            <p className="text-slate-400 uppercase text-[8px] font-black mb-1">Previous LGA</p>
-                            <p className="text-slate-400 text-[10px] line-through">{log.oldLga}</p>
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className="text-blue-600 uppercase text-[8px] font-black mb-1">New LGA</p>
-                            <p className="text-blue-700 text-[10px] font-black">{log.newLga}</p>
-                          </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-slate-900 font-black">{new Date(log.timestamp).toLocaleDateString()}</p>
+                          <p className="text-[9px] text-slate-400 font-bold">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
-                      )}
-                      {log.notes && (
-                        <div className="mt-2 p-2.5 bg-slate-100 rounded-lg border-l-4 border-blue-500">
-                          <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Agent Notes</p>
-                          <p className="text-[10px] text-slate-600 italic leading-relaxed">"{log.notes}"</p>
+                      </div>
+
+                      <div className="p-5 space-y-4">
+                        {/* Data Deltas */}
+                        <div className="grid grid-cols-1 gap-3">
+                          {log.oldNin !== log.newNin && (
+                            <div className="flex flex-col gap-1 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">NIN MODIFICATION</span>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded font-mono line-through">{log.oldNin}</span>
+                                <svg className="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-mono font-bold">{log.newNin}</span>
+                              </div>
+                            </div>
+                          )}
+                          {log.oldPhone !== log.newPhone && (
+                            <div className="flex flex-col gap-1 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">PHONE MODIFICATION</span>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded font-mono line-through">{log.oldPhone}</span>
+                                <svg className="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-mono font-bold">{log.newPhone}</span>
+                              </div>
+                            </div>
+                          )}
+                          {log.oldLga !== log.newLga && (
+                            <div className="flex flex-col gap-1 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">LGA REDEPLOYMENT</span>
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded font-bold line-through">{log.oldLga}</span>
+                                <svg className="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">{log.newLga}</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
+
+                        {log.notes && (
+                          <div className="mt-2 p-4 bg-white rounded-2xl border border-slate-100 shadow-inner">
+                            <div className="flex items-center gap-2 mb-2">
+                              <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" /></svg>
+                              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Agent Justification</span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 leading-relaxed font-medium italic">"{log.notes}"</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">No Previous Audits Found</p>
+              <div className="text-center py-16 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">No previous modifications tracked</p>
               </div>
             )}
           </div>
