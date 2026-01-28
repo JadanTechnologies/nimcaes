@@ -8,6 +8,14 @@ interface ModificationModalProps {
   onSave: (recordId: string, updates: Partial<NimcRecord>, notes: string, photo?: string) => void;
 }
 
+const NIGERIAN_STATES = [
+  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 
+  'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT - Abuja', 'Gombe', 
+  'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 
+  'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 
+  'Taraba', 'Yobe', 'Zamfara'
+];
+
 const SOKOTO_LGAS = [
   'Binji', 'Bodinga', 'Dange Shuni', 'Gada', 'Goronyo', 'Gudu', 
   'Gwadabawa', 'Illela', 'Isa', 'Kware', 'Rabah', 'Sabon Birni', 
@@ -18,12 +26,13 @@ const SOKOTO_LGAS = [
 type SyncStatus = 'idle' | 'syncing' | 'synced' | 'failed';
 
 const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, onSave }) => {
-  // Form State
+  // Form State - Pre-filled with record data or defaults as requested
   const [formData, setFormData] = useState({
     name: record.name,
     nin: record.nin,
     phoneNumber: record.phoneNumber,
-    lga: record.localGovernmentArea,
+    state: record.stateOfOrigin || 'Sokoto',
+    lga: record.localGovernmentArea || 'Rabah',
     address: record.address,
     dob: record.dateOfBirth,
   });
@@ -48,6 +57,7 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
       formData.name !== record.name ||
       formData.nin !== record.nin ||
       formData.phoneNumber !== record.phoneNumber ||
+      formData.state !== record.stateOfOrigin ||
       formData.lga !== record.localGovernmentArea ||
       formData.address !== record.address ||
       formData.dob !== record.dateOfBirth ||
@@ -108,6 +118,7 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
       name: formData.name,
       nin: formData.nin,
       phoneNumber: formData.phoneNumber,
+      stateOfOrigin: formData.state,
       localGovernmentArea: formData.lga,
       address: formData.address,
       dateOfBirth: formData.dob,
@@ -318,10 +329,14 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-1.5">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">State of Origin</label>
-                    <div className="px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-500 text-sm font-semibold">
-                      {record.stateOfOrigin}
-                    </div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-widest">State of Origin</label>
+                    <select 
+                      value={formData.state}
+                      onChange={e => setFormData({...formData, state: e.target.value})}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all"
+                    >
+                      {NIGERIAN_STATES.map(state => <option key={state} value={state}>{state}</option>)}
+                    </select>
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-widest">LGA</label>
@@ -331,6 +346,7 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
                       className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all"
                     >
                       {SOKOTO_LGAS.map(lga => <option key={lga} value={lga}>{lga}</option>)}
+                      {/* Optional: Add logic to filter LGAs based on State if needed for production use */}
                     </select>
                   </div>
                 </div>
