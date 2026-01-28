@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { NimcRecord } from '../types.ts';
 
 interface ModificationModalProps {
@@ -42,6 +42,7 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
 
   const isPhoneValid = useMemo(() => phoneRegex.test(formData.phoneNumber), [formData.phoneNumber]);
   const isNinValid = useMemo(() => ninRegex.test(formData.nin), [formData.nin]);
+  
   const isChanged = useMemo(() => {
     return (
       formData.name !== record.name ||
@@ -93,15 +94,25 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
     setShowCamera(false);
   };
 
-  // Fix: Added missing event handler for NIN input field
   const handleNinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
     setFormData(prev => ({ ...prev, nin: value }));
   };
 
-  // Fix: Added missing event handler for Phone number input field
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, phoneNumber: e.target.value }));
+  };
+
+  const triggerSave = () => {
+    onSave(record.id, {
+      name: formData.name,
+      nin: formData.nin,
+      phoneNumber: formData.phoneNumber,
+      localGovernmentArea: formData.lga,
+      address: formData.address,
+      dateOfBirth: formData.dob,
+      photo: capturedPhoto || undefined
+    }, notes, capturedPhoto || undefined);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,22 +126,66 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
       const success = Math.random() > 0.05; // 95% success rate simulation
       if (success) {
         setSyncStatus('synced');
+        // Auto-close after 3.5 seconds if user doesn't click
         setTimeout(() => {
-          onSave(record.id, {
-            name: formData.name,
-            nin: formData.nin,
-            phoneNumber: formData.phoneNumber,
-            localGovernmentArea: formData.lga,
-            address: formData.address,
-            dateOfBirth: formData.dob,
-            photo: capturedPhoto || undefined
-          }, notes, capturedPhoto || undefined);
-        }, 1000);
+           // Check if still synced (prevent double trigger)
+           setSyncStatus(current => {
+             if (current === 'synced') triggerSave();
+             return current;
+           });
+        }, 3500);
       } else {
         setSyncStatus('failed');
       }
     }, 2000);
   };
+
+  // Success Confirmation Screen Component
+  if (syncStatus === 'synced') {
+    return (
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-500">
+          <div className="p-10 flex flex-col items-center text-center">
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-25"></div>
+              <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30 relative z-10 animate-in zoom-in-50 duration-500">
+                <svg className="w-12 h-12 text-white animate-in slide-in-from-bottom-2 duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Record Synchronized</h2>
+            <p className="text-slate-500 font-medium max-w-xs mx-auto mb-8">
+              The changes for <span className="text-slate-900 font-bold">{formData.name}</span> have been successfully applied and hashed into the central database.
+            </p>
+
+            <div className="w-full space-y-3 mb-8">
+              <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction ID</span>
+                <span className="text-xs font-mono font-bold text-slate-900 uppercase">NIMC-{Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
+              </div>
+              <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Server Status</span>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                  <span className="text-[10px] font-black text-green-600 uppercase">Live & Hashed</span>
+                </span>
+              </div>
+            </div>
+
+            <button 
+              onClick={triggerSave}
+              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95"
+            >
+              Return to Dashboard
+            </button>
+            <p className="mt-4 text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Automatic redirection in 3 seconds...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
@@ -161,7 +216,6 @@ const ModificationModal: React.FC<ModificationModalProps> = ({ record, onClose, 
               }`}></div>
               {syncStatus === 'idle' && 'Ready to Sync'}
               {syncStatus === 'syncing' && 'Syncing with Headquarters...'}
-              {syncStatus === 'synced' && 'Network Synchronized'}
               {syncStatus === 'failed' && 'Sync Failed - Retry'}
             </div>
             <button 
