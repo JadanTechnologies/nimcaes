@@ -9,12 +9,19 @@ export enum RecordStatus {
 export interface ModificationLog {
   id: string;
   recordId: string;
-  oldPhone: string;
-  newPhone: string;
+  oldPhone?: string;
+  newPhone?: string;
   oldLga?: string;
   newLga?: string;
   oldNin?: string;
   newNin?: string;
+  oldName?: string;
+  newName?: string;
+  oldAddress?: string;
+  newAddress?: string;
+  oldDob?: string;
+  newDob?: string;
+  photoCaptured?: string; // base64
   notes?: string;
   timestamp: string;
   agentId: string;
@@ -29,6 +36,9 @@ export interface NimcRecord {
   gender: 'Male' | 'Female';
   stateOfOrigin: string;
   localGovernmentArea: string;
+  address: string;
+  dateOfBirth: string;
+  photo?: string;
   lastModified: string;
   status: RecordStatus;
   modificationHistory: ModificationLog[];

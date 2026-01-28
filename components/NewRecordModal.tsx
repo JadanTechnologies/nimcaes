@@ -14,7 +14,9 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ onClose, onSave }) => {
     phoneNumber: '+234',
     gender: 'Male' as 'Male' | 'Female',
     stateOfOrigin: 'Sokoto',
-    localGovernmentArea: 'Rabah'
+    localGovernmentArea: 'Rabah',
+    address: '',
+    dateOfBirth: ''
   });
 
   const phoneRegex = /^\+234\d{10}$/;
@@ -23,8 +25,10 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ onClose, onSave }) => {
   const isPhoneValid = useMemo(() => phoneRegex.test(formData.phoneNumber), [formData.phoneNumber]);
   const isNinValid = useMemo(() => ninRegex.test(formData.nin), [formData.nin]);
   const isNameValid = formData.name.trim().length > 3;
+  const isAddressValid = formData.address.trim().length > 10;
+  const isDobValid = formData.dateOfBirth.length > 0;
 
-  const canSubmit = isPhoneValid && isNinValid && isNameValid;
+  const canSubmit = isPhoneValid && isNinValid && isNameValid && isAddressValid && isDobValid;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +39,7 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <div>
             <h2 className="text-xl font-bold text-slate-900">New Modification Request</h2>
@@ -48,18 +52,7 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ onClose, onSave }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">State</label>
-              <input type="text" value={formData.stateOfOrigin} disabled className="w-full bg-slate-100 border border-slate-200 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed text-sm" />
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">LGA</label>
-              <input type="text" value={formData.localGovernmentArea} disabled className="w-full bg-slate-100 border border-slate-200 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed text-sm" />
-            </div>
-          </div>
-
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Full Name (Last Name First)</label>
             <input 
@@ -85,6 +78,31 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ onClose, onSave }) => {
               </select>
             </div>
             <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Date of Birth</label>
+              <input 
+                type="date" 
+                required
+                value={formData.dateOfBirth}
+                onChange={e => setFormData({...formData, dateOfBirth: e.target.value})}
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm" 
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Residential Address</label>
+            <textarea 
+              required
+              rows={2}
+              placeholder="Full physical address..."
+              value={formData.address}
+              onChange={e => setFormData({...formData, address: e.target.value})}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all resize-none" 
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">NIN (11 Digits)</label>
               <input 
                 type="text" 
@@ -96,19 +114,17 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ onClose, onSave }) => {
                 className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 outline-none text-sm font-mono transition-all ${isNinValid ? 'border-green-500 focus:ring-green-500/20' : 'border-slate-300 focus:ring-blue-500/20'}`} 
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Primary Phone Number</label>
-            <input 
-              type="tel" 
-              required
-              maxLength={14}
-              value={formData.phoneNumber}
-              onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
-              className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 outline-none text-sm font-mono transition-all ${isPhoneValid ? 'border-green-500 focus:ring-green-500/20' : 'border-slate-300 focus:ring-blue-500/20'}`} 
-            />
-            <p className="mt-1 text-[10px] text-slate-400">Format: +234 followed by 10 digits</p>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Phone Number</label>
+              <input 
+                type="tel" 
+                required
+                maxLength={14}
+                value={formData.phoneNumber}
+                onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
+                className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 outline-none text-sm font-mono transition-all ${isPhoneValid ? 'border-green-500 focus:ring-green-500/20' : 'border-slate-300 focus:ring-blue-500/20'}`} 
+              />
+            </div>
           </div>
 
           <div className="pt-4 flex gap-3">

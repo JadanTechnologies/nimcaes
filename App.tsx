@@ -33,18 +33,25 @@ const App: React.FC = () => {
     }, 2000);
   };
 
-  const handleUpdateRecord = (recordId: string, newPhone: string, newLga: string, newNin: string, notes: string) => {
+  const handleUpdateRecord = (recordId: string, updates: Partial<NimcRecord>, notes: string, photo?: string) => {
     setRecords(prev => prev.map(rec => {
       if (rec.id === recordId) {
         const newHistoryEntry: ModificationLog = {
           id: `hist-${Date.now()}`,
           recordId: rec.id,
           oldPhone: rec.phoneNumber,
-          newPhone: newPhone,
+          newPhone: updates.phoneNumber,
           oldLga: rec.localGovernmentArea,
-          newLga: newLga,
+          newLga: updates.localGovernmentArea,
           oldNin: rec.nin,
-          newNin: newNin,
+          newNin: updates.nin,
+          oldName: rec.name,
+          newName: updates.name,
+          oldAddress: rec.address,
+          newAddress: updates.address,
+          oldDob: rec.dateOfBirth,
+          newDob: updates.dateOfBirth,
+          photoCaptured: photo,
           notes: notes,
           timestamp: new Date().toISOString(),
           agentId: 'AGT-7742',
@@ -53,9 +60,7 @@ const App: React.FC = () => {
 
         return { 
           ...rec, 
-          phoneNumber: newPhone, 
-          localGovernmentArea: newLga,
-          nin: newNin,
+          ...updates,
           status: RecordStatus.MODIFIED, 
           lastModified: new Date().toISOString(),
           modificationHistory: [newHistoryEntry, ...rec.modificationHistory]
@@ -84,6 +89,10 @@ const App: React.FC = () => {
     const response = await getAiGuidance(aiQuery, selectedRecord || records[0]);
     setAiResponse(response || 'No guidance available.');
     setIsAiLoading(false);
+  };
+
+  const handlePhoneChange = (val: string) => {
+    setSearchTerm(val);
   };
 
   if (authState === 'unauthenticated') {
